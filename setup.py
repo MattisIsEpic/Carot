@@ -4,7 +4,7 @@ classifiers = [
     'Development Status :: 2 - Early Release',
     'Intended Audience :: Software Developers',
     'Operating System :: Linux :: Windows',
-    'License :: non-OSI approved :: My own license',
+    'License :: OSI approved :: GNU AGPLv3',
     'Programming Language :: Python :: 3'
 ]
 
@@ -16,7 +16,7 @@ setup(
     url='',
     author='Mattis Leif Emanuel Kardell',
     author_email='kardellmattis@gmail.com',
-    license='My own license',
+    license='GNU AGPLv3',
     classifiers=classifiers,
     keywords='Backend Development, Networking, Database programming',
     packages=find_packages()
