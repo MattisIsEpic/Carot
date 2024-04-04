@@ -4,7 +4,7 @@ classifiers = [
     'Development Status :: 2 - Early Release',
     'Intended Audience :: Software Developers',
     'Operating System :: Linux :: Windows',
-    'License :: OSI approved :: GNU AGPLv3',
+    'License :: OSI approved :: CC0',
     'Programming Language :: Python :: 3'
 ]
 
