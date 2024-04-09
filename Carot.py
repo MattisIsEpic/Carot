@@ -1,6 +1,9 @@
 import socket
-import csv
 import re
+import json
+from base64 import b64encode, b64decode
+from Crypto.Cipher import AES
+from Crypto.Random import get_random_bytes
 
 class Server():
     global server
@@ -15,69 +18,6 @@ class Server():
         global address
         client, address = server.accept()
         return [client, address]
-
-class Database():
-    #delete X line from database
-    def Delete(database: str, line: int):
-        with open(database) as db:
-            lines = db.readlines()
-        del lines[line]
-    
-    def SearchRegex(rule: str, column: int, database: str):
-        #compile the rule
-        regex = re.compile(rule)
-        #r is the list for all the matches
-        r = []
-        #scan for matches
-        with open(database) as db:
-            csv_read = csv.reader(db)
-            for i in range(len(csv_read)):
-                line = csv_read[i]
-                search = regex.search(line[column-1])
-                if not search is None:
-                    r.append(i)
-        return r
-    
-    #Search for a line with little info
-    def Search(information: list, columns: list, database: str):
-        #init the return list
-        ret = []
-        #open file
-        with open(database) as db:#
-            csv_read = csv.reader(db)
-            for i in range(len(csv_read)):
-                #scan the file
-                line = csv_read[i]
-                r = True
-                for i2 in range(len(columns)):
-                    if not line[columns[i2]] == information[i2]:
-                        r = False
-                #check if all conditions are true
-                if r == True:
-                    ret.append(i)
-        #return
-        return ret
-    
-    def Replace(database: str, line: int, columns: list, updated: list):
-        #open
-        with open(database) as db:
-            #get lines for replacement
-            lines = db.readlines()
-            #read csv
-            csv_read = csv.reader(db)
-            replaced = csv_read[line]
-            #get X column and X updated in replaced list and replace item
-            for i in range(len(columns)):
-                replaced[columns[i]] = updated[i]
-            #generate csv text
-            text = ''
-            for i in range(len(replaced)):
-                if i == len(replaced)-1:
-                    text += str(replaced[i])
-                else:
-                    text += str(replaced[i])+','
-        #replace (Finally)
-        lines[line] = text
 
 class Validate():
     def ValidateTextInput(rule: str, string: str):
@@ -100,3 +40,32 @@ class Validate():
             return False
         else:
             return True
+        
+class Encryption():
+    def cipher(text, key):
+        header = b"header"
+        data = b"secret"
+        cipher = AES.new(key, AES.MODE_GCM)
+        cipher.update(header)
+        ciphertext, tag = cipher.encrypt_and_digest(data)
+
+        json_k = [ 'nonce', 'header', 'ciphertext', 'tag' ]
+        json_v = [ b64encode(x).decode('utf-8') for x in (cipher.nonce, header, ciphertext, tag) ]
+        result = json.dumps(dict(zip(json_k, json_v)))
+        return result
+    
+    def decipher(text, key):
+        try:
+            b64 = json.loads(text)
+            json_k = [ 'nonce', 'header', 'ciphertext', 'tag' ]
+            jv = {k:b64decode(b64[k]) for k in json_k}
+
+            cipher = AES.new(key, AES.MODE_GCM, nonce=jv['nonce'])
+            cipher.update(jv['header'])
+            plaintext = cipher.decrypt_and_verify(jv['ciphertext'], jv['tag'])
+            print("The message was: " + plaintext.decode('utf-8'))
+        except (ValueError, KeyError):
+            print("Incorrect decryption")
+    
+    def Generate_Key():
+        return get_random_bytes(16)
